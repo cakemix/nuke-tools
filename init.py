@@ -21,7 +21,7 @@ import re
 import fin_globals
 
 ### BEGIN FILEPATH CORRECTION ###
-# Make all filepaths load without errors regardless of OS (No Linux support and no C: support)
+# Make all filepaths load without errors regardless of OS
 def myFilenameFilter(filename):
 	if nuke.env['MACOS']:
 		filename = filename.replace( os.environ.get('WIN_SERVER', None), os.environ.get('MAC_SERVER', None) )
@@ -188,9 +188,7 @@ if __name__ == '__main__':
     if not nuke.GUI:
         # We're not gonna need it anymore, cleanup...
         del gizManager
-
-## import FIN
-import fin_Tools
+		
 	
 ### Read and Write nodes change defaults
 nuke.knobDefault("Read.before", "black")

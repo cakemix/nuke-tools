@@ -17,7 +17,6 @@ import os
 import re
 import sys
 import nuke
-import fin_Tools
 import Send2Rush as s2r
 import os.path
 import djv_this
@@ -29,20 +28,68 @@ import animatedSnap3D
 finServer = os.environ.get('SERVER', None)
 jobServer = os.environ.get('JOB_SERVER', None)
 user = os.environ.get('USER', None)
+
 ### END ENV VARS SETUP ###
+
+### BEGIN DEFINTIONS ###
+### set new item definitions
+def viewer_pipes():
+    n = nuke.allNodes()
+
+    for i in n:
+        if i.Class() == "Viewer":
+            if i.knob("hide_input").getValue == True:
+                i.knob("hide_input").setValue(False)
+            else:
+                 i.knob("hide_input").setValue(True)
+                 
+def curFrame():
+    return nuke.frame()
+                 
+def firstFrameEval():
+    n = nuke.thisNode()
+    n['first_frame'].setValue(nuke.frame())
+    
+def guiOn():
+    n = nuke.thisNode()
+    n['disable'].setExpression("$gui ? 0:1")
+        
+# Create paths
+def createPaths():
+    n = nuke.allNodes()
+    for x in n:
+        if x.Class() == "Write":
+            path = x.knob("file").value()
+            path = path.split("/")
+            pathNum = len(path)
+            pathNum = pathNum - 1
+            del path[pathNum]
+            path = "/".join(path)
+            if os.path.exists(path):
+                pass
+            else:
+                os.mkdir(path)
+                create = True
+    if create == True:
+        nuke.message( "Paths have been created" )
+        
+### END DEFINITIONS ###
 
 
 ### BEGIN DJVIEW SETUP ###
 ## Use DJView as playback
 menu = nuke.menu('Nuke')
 m = menu.findItem('Render')
-m.addCommand('Flipbook Selected in &DJV', 'nukescripts.flipbook( djv_this.djv_this, nuke.selectedNode() )', 'Ctrl+F', index=9)
-### END DJVIEW SETUP
+m.addCommand('Flipbook Selected in &DJV', 'nukescripts.flipbook( djv_this.djv_this, \
+             nuke.selectedNode() )', 'Ctrl+F', index=9)
+
+### END DJVIEW SETUP ###
 
 
 ### BEGIN OCIO SETUP ###
 import nukescripts.ViewerProcess; nukescripts.ViewerProcess.unregister_viewers()
-import nukescripts.ViewerProcess; nukescripts.ViewerProcess.register_viewers(defaultLUTS = False, ocioConfigName = os.environ.get('OCIO', None));
+import nukescripts.ViewerProcess; nukescripts.ViewerProcess.register_viewers(defaultLUTS = False,\
+                                                   ocioConfigName = os.environ.get('OCIO', None));
 ### END OCIO SETUP ###
 
 
@@ -50,7 +97,15 @@ import nukescripts.ViewerProcess; nukescripts.ViewerProcess.register_viewers(def
 ## Add Favorites directories
 nuke.addFavoriteDir('Job Server', jobServer )
 toolbar = nuke.toolbar("Nodes")
+
 ### END FAVORITES SETUP ###
+
+
+### BEGIN DEFAULTS SETUP ###
+nuke.addOnUserCreate(firstFrameEval, nodeClass = 'FrameHold')
+nuke.addOnUserCreate(guiOn, nodeClass = 'DiskCache')
+
+### END DEFAULTS SETUP ###
 
 ### BEGIN LUMA GIZMO SETUP ###
 ## LUMA Pictures gizmo collector
@@ -64,6 +119,7 @@ if __name__ == '__main__':
       gizManager.addGizmoMenuItems()
       # Don't need it no more...
       del gizManager
+      
 ### END LUMA SETUP ###
 
 
@@ -121,6 +177,7 @@ nuke.knobDefault( 'Write.beforeRender', 'fin_assetManager.createOutDirs()')
 #m.addCommand("Create Paths", "fin_Tools.createPaths()")
 #m.addCommand("Fix Paths", "fixPath.fixPath()")
 #m.addCommand("Send2Rush", "s2r.Nuke2Rush()")
+
 ### END RUSH SETUP ###
 
 
@@ -138,11 +195,20 @@ nuke.menu("Nodes").addCommand("Draw/Grain_CB", "nuke.createNode('Grain_CB')", ic
 
 
 ### BEGIN MENU SETUP ###
-## Presets Backdrop
-presetBackdropMenu = nuke.menu('Nuke').addMenu('presetBackdrop')
-presetBackdropMenu.addCommand('Preset Backdrop', 'presetBackdrop.presetBackdrop()', 'ctrl+alt+b')
+## Nukepedia
+# Download these from Nukepedia.com
+import presetBackdrop
+nukepediaMenu = nuke.menu('Nuke').addMenu('Nukepedia')
+nukepediaMenu.addCommand('Preset Backdrop', 'presetBackdrop.presetBackdrop()', 'ctrl+alt+b')
+import CopyCam
+nukepediaMenu.addCommand( 'Copy Camera for Projection', 'CopyCam.copyCamForProj()', "Shift+v")
+
+## Miles Menu
+milesMenu = nuke.menu('Nuke').addMenu('Miles')
+milesMenu.addCommand('Toggle Viewer Pipes', 'viewer_pipes()', 'alt+t')
 
 ## Victor Menu
+# Download Victor Tools from Nukepedia.com
 VMenu = toolbar.addMenu('V!ctor', icon='V_Victor.png')
 VMenu.addCommand('V_CheckMatte', 'nuke.createNode("V_CheckMatte")', icon='V_CheckMatte.png')
 VMenu.addCommand('V_IdBuilder', 'nuke.createNode("V_IdBuilder")', icon='V_IdBuilder.png')
@@ -154,6 +220,7 @@ VMenu.addCommand('V_CompareView', 'nuke.createNode("V_CompareView")', icon='V_Co
 VMenu.addCommand('V_Slate', 'nuke.createNode("V_Slate")', icon='V_Slate.png')
 
 ## DW Menu
+# Download DW Tools from Nukepedia.com
 dwMenu = toolbar.addMenu("DW Tools", "dw_menu.png")
 dwMenu.addCommand("Cameras/Camera Project Current Frame", "dw_camProjSet_v1_1.camProjSingle()", "shift+c", "dw_camProjCurFrame.png")
 dwMenu.addCommand("Cameras/Camera Project Source", "dw_camProjSet_v1_1.camProjMultiple()", "ctrl+shift+c", "dw_camProjSource.png")
