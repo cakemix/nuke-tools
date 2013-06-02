@@ -1,4 +1,4 @@
 nuke-tools
 ==========
 
-Python tools and gizmos for Nuke by The Foundry
+Python tools and gizmos for compositing software Nuke
