@@ -10,3 +10,7 @@ for n in nuke.selectedNodes("Camera2"):
     
 # running tcl commands in python
 nuke.tcl("value label")
+
+# setting defaults in menu.py or init.py. http://docs.thefoundry.co.uk/nuke/63/pythondevguide/basics.html
+nuke.knobDefault("Blur.size", "20")
+nuke.knobDefault("Read.exr.compression", "2")
