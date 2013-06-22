@@ -26,3 +26,11 @@ random(1,frame)
 <font color="red">Some red text</font> # change font color
 <font color="blue">Some blue text</font> # a different font color
 <b>Bold text</b> # bold text
+
+# setting a general tcl variable from http://thoughtvfx.blogspot.com
+[set variablename value] 
+# for example (tsize is the variable name):
+[set tsize 15]
+
+# using that variable later (notice the "$") for setting a knob value:
+[knob this.size $tsize]
